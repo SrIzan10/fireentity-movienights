@@ -24,6 +24,8 @@ import {
 import { authClient } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import MovieCalendar from "@/components/MovieCalendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast, Toaster } from "sonner";
 
 interface Movie {
   id: string;
@@ -32,6 +34,9 @@ interface Movie {
   posterUrl: string;
   suggestedBy: string;
   approved?: boolean;
+  votes?: any[];
+  userVote?: boolean;
+  isOwnSubmission?: boolean;
 }
 
 interface MovieSchedule {
@@ -49,6 +54,7 @@ export default function AdminPage() {
   const [selectedMovie, setSelectedMovie] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [votingMovieId, setVotingMovieId] = useState<string | null>(null);
 
   const fetchUnapprovedMovies = async () => {
     try {
@@ -64,7 +70,7 @@ export default function AdminPage() {
 
   const fetchApprovedMovies = async () => {
     try {
-      const res = await fetch("/api/movies");
+      const res = await fetch("/api/movies?approved=true");
       if (res.ok) {
         const data = await res.json();
         setApprovedMovies(data);
@@ -106,9 +112,13 @@ export default function AdminPage() {
       if (res.ok) {
         fetchUnapprovedMovies();
         fetchApprovedMovies();
+        toast.success("Movie approved successfully!");
+      } else {
+        toast.error("Failed to approve movie");
       }
     } catch (error) {
       console.error("Error approving movie:", error);
+      toast.error("Error approving movie");
     }
   };
 
@@ -132,9 +142,13 @@ export default function AdminPage() {
         setSelectedMovie("");
         setSelectedDate("");
         setIsScheduleDialogOpen(false);
+        toast.success("Movie scheduled successfully!");
+      } else {
+        toast.error("Failed to schedule movie");
       }
     } catch (error) {
       console.error("Error scheduling movie:", error);
+      toast.error("Error scheduling movie");
     }
   };
 
@@ -146,9 +160,42 @@ export default function AdminPage() {
 
       if (res.ok) {
         fetchSchedules();
+        toast.success("Schedule removed successfully!");
+      } else {
+        toast.error("Failed to remove schedule");
       }
     } catch (error) {
       console.error("Error deleting schedule:", error);
+      toast.error("Error removing schedule");
+    }
+  };
+
+  const handleVote = async (movieId: string) => {
+    if (!session) return;
+
+    setVotingMovieId(movieId);
+
+    try {
+      const response = await fetch(`/api/movies/${movieId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Refresh movies to show updated vote count
+        fetchUnapprovedMovies();
+        toast.success("Vote recorded successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to vote');
+      }
+    } catch (error) {
+      console.error('Error voting:', error);
+      toast.error('Failed to vote. Please try again.');
+    } finally {
+      setVotingMovieId(null);
     }
   };
 
@@ -158,6 +205,7 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
+      <Toaster position="top-right" />
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <Button onClick={() => router.push("/")} variant="outline">
@@ -177,6 +225,7 @@ export default function AdminPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Suggested By</TableHead>
+                <TableHead>Votes</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -186,6 +235,25 @@ export default function AdminPage() {
                   <TableCell className="font-medium">{movie.title}</TableCell>
                   <TableCell className="max-w-xs truncate">{movie.description}</TableCell>
                   <TableCell>{movie.suggestedBy}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span>{movie.votes?.length || 0} votes</span>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleVote(movie.id)}
+                        disabled={votingMovieId === movie.id || movie.userVote || movie.isOwnSubmission}
+                        variant={movie.userVote ? "secondary" : "default"}
+                      >
+                        {movie.isOwnSubmission 
+                          ? "Own Submission" 
+                          : movie.userVote 
+                            ? "Voted" 
+                            : votingMovieId === movie.id 
+                              ? "Voting..." 
+                              : "Vote"}
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Button onClick={() => handleApprove(movie.id)}>
                       Approve

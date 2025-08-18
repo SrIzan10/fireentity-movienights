@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth";
 import MovieCalendar from "@/components/MovieCalendar";
 import Link from "next/link";
+import { toast, Toaster } from "sonner";
 
 interface Movie {
   id: string;
@@ -13,6 +14,8 @@ interface Movie {
   description: string;
   posterUrl: string;
   votes: any[];
+  userVote?: boolean;
+  isOwnSubmission?: boolean;
 }
 
 export default function Home() {
@@ -20,7 +23,6 @@ export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingMovieId, setVotingMovieId] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     fetchMovies();
@@ -44,7 +46,6 @@ export default function Home() {
     if (!session) return;
 
     setVotingMovieId(movieId);
-    setMessage(null);
 
     try {
       const response = await fetch(`/api/movies/${movieId}/vote`, {
@@ -57,24 +58,23 @@ export default function Home() {
       if (response.ok) {
         // Refresh movies to show updated vote count
         fetchMovies();
-        setMessage({ type: 'success', text: 'Vote recorded successfully!' });
+        toast.success("Vote recorded successfully!");
       } else {
         const errorData = await response.json();
-        setMessage({ type: 'error', text: errorData.error || 'Failed to vote' });
+        toast.error(errorData.error || 'Failed to vote');
       }
     } catch (error) {
       console.error('Error voting:', error);
-      setMessage({ type: 'error', text: 'Failed to vote. Please try again.' });
+      toast.error('Failed to vote. Please try again.');
     } finally {
       setVotingMovieId(null);
-      // Clear message after 3 seconds
-      setTimeout(() => setMessage(null), 3000);
     }
   };
 
   if (session) {
     return (
       <div className="container mx-auto p-4 space-y-8">
+        <Toaster position="top-right" />
         <div className="flex justify-between items-center mb-4">
           <p>Signed in as {session.user?.name}</p>
           <div>
@@ -94,17 +94,6 @@ export default function Home() {
             <Button onClick={() => authClient.signOut()}>Sign out</Button>
           </div>
         </div>
-
-        {/* Message Display */}
-        {message && (
-          <div className={`p-4 rounded-md mb-4 ${
-            message.type === 'success' 
-              ? 'bg-green-50 text-green-800 border border-green-200' 
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}>
-            {message.text}
-          </div>
-        )}
 
         {/* Movie Calendar */}
         <div>
@@ -155,10 +144,17 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <Button 
                         onClick={() => handleVote(movie.id)}
-                        disabled={votingMovieId === movie.id}
+                        disabled={votingMovieId === movie.id || movie.userVote || movie.isOwnSubmission}
                         className="transition-colors"
+                        variant={movie.userVote ? "secondary" : "default"}
                       >
-                        {votingMovieId === movie.id ? 'Voting...' : 'Vote'}
+                        {movie.isOwnSubmission 
+                          ? "Your Submission" 
+                          : movie.userVote 
+                            ? "Already Voted" 
+                            : votingMovieId === movie.id 
+                              ? "Voting..." 
+                              : "Vote"}
                       </Button>
                       <span className="text-sm font-medium text-gray-600">
                         {movie.votes.length} {movie.votes.length === 1 ? 'Vote' : 'Votes'}

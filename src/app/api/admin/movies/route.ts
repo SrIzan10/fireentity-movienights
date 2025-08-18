@@ -18,7 +18,30 @@ export async function GET() {
     where: {
       approved: false,
     },
+    include: {
+      votes: true,
+    },
   });
+  
+  // Add user vote information
+  if (session && session.user?.id) {
+    const userId = session.user.id;
+    
+    const moviesWithUserData = movies.map(movie => ({
+      ...movie,
+      userVote: movie.votes.some(vote => vote.userId === userId),
+      isOwnSubmission: movie.suggestedBy === session.user?.name
+    }));
+    
+    return NextResponse.json(moviesWithUserData);
+  }
+  
+  // For non-logged-in users, just return movies with false values
+  const moviesWithoutUserData = movies.map(movie => ({
+    ...movie,
+    userVote: false,
+    isOwnSubmission: false
+  }));
 
-  return NextResponse.json(movies);
+  return NextResponse.json(moviesWithoutUserData);
 }
