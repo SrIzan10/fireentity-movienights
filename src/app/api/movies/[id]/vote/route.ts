@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { auth } from "../../../auth/auth";
 import { headers } from "next/headers";
+import { idSchema, validateParams } from "@/lib/validation";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,13 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const movieId = (await params).id;
+  // Validate params
+  const { data, error } = validateParams(await params, idSchema);
+  if (error) {
+    return NextResponse.json({ error }, { status: 400 });
+  }
+  
+  const movieId = data.id;
   const userId = session.user.id;
 
   // Check if the user has already voted for this movie

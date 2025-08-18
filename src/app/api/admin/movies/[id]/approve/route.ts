@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { auth } from "../../../../auth/auth";
 import { headers } from "next/headers";
+import { idSchema, validateParams } from "@/lib/validation";
 
 const prisma = new PrismaClient();
 
@@ -17,9 +18,15 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Validate params
+  const { data, error } = validateParams(await params, idSchema);
+  if (error) {
+    return NextResponse.json({ error }, { status: 400 });
+  }
+
   const movie = await prisma.movie.update({
     where: {
-      id: (await params).id,
+      id: data.id,
     },
     data: {
       approved: true,

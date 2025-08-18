@@ -3,15 +3,22 @@ import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "../auth/auth";
+import { movieSuggestionSchema, validateRequestData } from "@/lib/validation";
 
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
-  const { title, description, posterUrl, suggestedBy } = await req.json();
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !session.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Validate request data
+  const { data, error } = await validateRequestData(req, movieSuggestionSchema);
+  if (error) {
+    return NextResponse.json({ error }, { status: 400 });
+  }
+  const { title, description, posterUrl, suggestedBy } = data as any;
 
   // Check if there's already a pending request for this movie (not approved)
   const existingPendingMovies = await prisma.movie.findMany({
