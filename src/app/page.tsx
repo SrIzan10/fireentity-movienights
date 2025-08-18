@@ -20,7 +20,7 @@ interface Movie {
 }
 
 export default function Home() {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingMovieId, setVotingMovieId] = useState<string | null>(null);
@@ -48,6 +48,9 @@ export default function Home() {
 
     setVotingMovieId(movieId);
 
+    const movieToUpdate = movies.find(movie => movie.id === movieId);
+    const alreadyVoted = movieToUpdate?.userVote;
+
     try {
       const response = await fetch(`/api/movies/${movieId}/vote`, {
         method: 'POST',
@@ -59,7 +62,11 @@ export default function Home() {
       if (response.ok) {
         // Refresh movies to show updated vote count
         fetchMovies();
-        toast.success("Vote recorded successfully!");
+        if (alreadyVoted) {
+          toast.success("Vote removed successfully!");
+        } else {
+          toast.success("Vote recorded successfully!");
+        }
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || 'Failed to vote');
@@ -146,14 +153,14 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <Button 
                         onClick={() => handleVote(movie.id)}
-                        disabled={votingMovieId === movie.id || movie.userVote || movie.isOwnSubmission}
+                        disabled={votingMovieId === movie.id || movie.isOwnSubmission}
                         className="transition-colors"
                         variant={movie.userVote ? "secondary" : "default"}
                       >
                         {movie.isOwnSubmission 
                           ? "Your Submission" 
                           : movie.userVote 
-                            ? "Already Voted" 
+                            ? "Remove Vote" 
                             : votingMovieId === movie.id 
                               ? "Voting..." 
                               : "Vote"}
