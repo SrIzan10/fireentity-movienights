@@ -8,6 +8,10 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const { title, description, posterUrl, suggestedBy } = await req.json();
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !session.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   // Check if there's already a pending request for this movie (not approved)
   const existingPendingMovies = await prisma.movie.findMany({
