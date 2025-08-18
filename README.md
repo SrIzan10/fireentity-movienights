@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FireEntity Movie Nights
+
+A Next.js application for organizing movie nights with voting and scheduling features.
+
+## Features
+
+- **User Authentication**: Sign in with Slack
+- **Movie Suggestions**: Users can suggest movies for movie nights
+- **Voting System**: Vote for your favorite suggested movies
+- **Admin Panel**: Approve movie suggestions and schedule movies
+- **Calendar View**: See what movies are scheduled for which dates
+- **Responsive Design**: Works on desktop and mobile
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ 
+- PostgreSQL database
+- Slack app for authentication
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd fireentity-movienights
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   
+   Copy `.env.example` to `.env.local` and fill in your values:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+4. **Database Setup**
+   ```bash
+   # Run migrations
+   npx prisma migrate dev
+   
+   # Generate Prisma client
+   npx prisma generate
+   ```
+
+5. **Slack App Configuration**
+   - Go to https://api.slack.com/apps
+   - Create a new app for your workspace
+   - Add OAuth redirect URL: `http://localhost:3000/api/auth/callback/slack`
+   - Copy Client ID and Secret to your `.env.local`
+
+6. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+7. **Visit the application**
+   
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Admin Access
+
+To make a user an admin:
+1. Sign in with the user account
+2. Manually update the database to set `isAdmin = true` for that user
+3. Or use Prisma Studio: `npx prisma studio`
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── admin/           # Admin dashboard
+│   ├── api/            # API routes
+│   ├── suggest/        # Movie suggestion page
+│   └── page.tsx        # Home page with calendar and voting
+├── components/
+│   ├── ui/             # Reusable UI components
+│   └── MovieCalendar.tsx
+├── lib/
+│   ├── auth.ts         # Authentication configuration
+│   └── utils.ts
+└── prisma/
+    └── schema.prisma   # Database schema
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API Endpoints
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `GET /api/movies` - Get approved movies
+- `POST /api/movies` - Suggest a new movie
+- `POST /api/movies/[id]/vote` - Vote for a movie
+- `GET /api/admin/movies` - Get unapproved movies (admin only)
+- `POST /api/admin/movies/[id]/approve` - Approve a movie (admin only)
+- `GET /api/admin/schedule` - Get movie schedule
+- `POST /api/admin/schedule` - Schedule a movie (admin only)
+- `DELETE /api/admin/schedule` - Remove scheduled movie (admin only)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Technologies Used
 
-## Learn More
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: PostgreSQL
+- **Authentication**: Better Auth with Slack OAuth
+- **UI Components**: Custom components with Tailwind
+- **Calendar**: React Calendar
 
-To learn more about Next.js, take a look at the following resources:
+## Contributing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
