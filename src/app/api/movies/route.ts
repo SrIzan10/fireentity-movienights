@@ -9,9 +9,45 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   const { title, description, posterUrl, suggestedBy } = await req.json();
 
+  // Check if there's already a pending request for this movie (not approved)
+  const existingPendingMovies = await prisma.movie.findMany({
+    where: {
+      title: {
+        equals: title,
+        mode: "insensitive"
+      },
+      approved: false
+    }
+  });
+
+  // If there's already a pending request, don't allow duplicate
+  if (existingPendingMovies.length > 0) {
+    return NextResponse.json(
+      { error: "This movie has already been suggested and is pending approval." },
+      { status: 400 }
+    );
+  }
+
+  // Check if there are already approved movies with the same title
+  const existingApprovedMovies = await prisma.movie.findMany({
+    where: {
+      title: {
+        equals: title,
+        mode: "insensitive"
+      },
+      approved: true
+    }
+  });
+
+  // If there are existing approved movies, append a number to the title
+  let finalTitle = title;
+  if (existingApprovedMovies.length > 0) {
+    finalTitle = `${title} (${existingApprovedMovies.length + 1})`;
+  }
+
   const movie = await prisma.movie.create({
     data: {
-      title,
+      title: finalTitle,
       description,
       posterUrl,
       suggestedBy,

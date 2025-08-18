@@ -28,6 +28,7 @@ export default function SuggestPage() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
@@ -42,13 +43,17 @@ export default function SuggestPage() {
 
   const handleSelectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
+    setError(null);
   };
+
 
   const handleSubmit = async () => {
     if (!session || !selectedMovie) {
       return;
     }
 
+    setError(null);
+    
     const res = await fetch("/api/movies", {
       method: "POST",
       headers: {
@@ -64,6 +69,9 @@ export default function SuggestPage() {
 
     if (res.ok) {
       router.push("/");
+    } else {
+      const data = await res.json();
+      setError(data.error || "Failed to submit movie suggestion");
     }
   };
 
@@ -97,6 +105,7 @@ export default function SuggestPage() {
           {selectedMovie && (
             <div className="mt-4">
               <p>Selected: {selectedMovie.title}</p>
+              {error && <p className="text-red-500 mt-2">{error}</p>}
               <Button onClick={handleSubmit} className="mt-2">
                 Submit
               </Button>
