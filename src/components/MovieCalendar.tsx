@@ -5,6 +5,7 @@ import Calendar from "react-calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import "react-calendar/dist/Calendar.css";
+import { useTheme } from "next-themes";
 
 interface MovieSchedule {
   id: string;
@@ -24,6 +25,7 @@ interface CalendarProps {
 export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
   const [schedules, setSchedules] = useState<MovieSchedule[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchSchedules();
@@ -107,42 +109,66 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
                 min-height: 60px;
                 position: relative;
                 padding: 4px;
-                border: 1px solid #e5e7eb;
-                background: white;
+                border: 1px solid hsl(var(--border));
+                background: hsl(var(--background));
               }
               .movie-calendar .react-calendar__tile.movie-scheduled {
-                background-color: #dbeafe;
-                border-color: #3b82f6;
+                background-color: hsl(var(--primary) / 0.1);
+                border-color: hsl(var(--primary));
               }
               .movie-calendar .react-calendar__tile.movie-scheduled:hover {
-                background-color: #bfdbfe;
+                background-color: hsl(var(--primary) / 0.2);
               }
               .movie-calendar .react-calendar__tile--active {
-                background-color: #3b82f6 !important;
-                color: white !important;
+                background-color: hsl(var(--primary)) !important;
+                color: hsl(var(--primary-foreground)) !important;
               }
               .movie-calendar .react-calendar__tile:hover {
-                background-color: #f9fafb;
+                background-color: hsl(var(--accent));
               }
               .movie-calendar .react-calendar__navigation {
                 margin-bottom: 1rem;
               }
               .movie-calendar .react-calendar__navigation button {
-                color: #374151;
+                color: hsl(var(--foreground));
                 font-size: 16px;
                 font-weight: 500;
-                background: white;
-                border: 1px solid #d1d5db;
+                background: hsl(var(--background));
+                border: 1px solid hsl(var(--border));
                 border-radius: 0.375rem;
                 padding: 0.5rem 1rem;
               }
               .movie-calendar .react-calendar__navigation button:hover {
-                background-color: #f3f4f6;
+                background-color: hsl(var(--accent));
               }
               .movie-calendar .react-calendar__month-view__weekdays {
                 text-align: center;
                 font-weight: 600;
-                color: #374151;
+                color: hsl(var(--foreground));
+              }
+              
+              /* Dark mode overrides */
+              .dark .movie-calendar .react-calendar__tile {
+                border: 1px solid hsl(var(--border));
+                background: hsl(var(--background));
+              }
+              .dark .movie-calendar .react-calendar__tile.movie-scheduled {
+                background-color: hsl(var(--primary) / 0.15);
+                border-color: hsl(var(--primary));
+              }
+              .dark .movie-calendar .react-calendar__tile.movie-scheduled:hover {
+                background-color: hsl(var(--primary) / 0.25);
+              }
+              .dark .movie-calendar .react-calendar__navigation button {
+                color: hsl(var(--foreground));
+                background: hsl(var(--background));
+                border: 1px solid hsl(var(--border));
+              }
+              .dark .movie-calendar .react-calendar__navigation button:hover {
+                background-color: hsl(var(--accent));
+              }
+              .dark .movie-calendar .react-calendar__month-view__weekdays {
+                color: hsl(var(--foreground));
               }
             `}</style>
             <Calendar
@@ -179,13 +205,13 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
                 />
                 <div>
                   <h3 className="font-semibold text-lg">{selectedSchedule.movie.title}</h3>
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-sm text-muted-foreground mt-2">
                     {selectedSchedule.movie.description}
                   </p>
                 </div>
               </div>
             ) : (
-              <p className="text-gray-500">No movie scheduled for this date.</p>
+              <p className="text-muted-foreground">No movie scheduled for this date.</p>
             )}
           </CardContent>
         </Card>
