@@ -27,6 +27,14 @@ export async function POST(
   const movieId = data.id;
   const userId = session.data.user.id;
 
+  const movie = await prisma.movie.findUnique({
+    where: { id: movieId },
+  });
+
+  if (!movie) {
+    return NextResponse.json({ error: "Movie not found" }, { status: 404 });
+  }
+
   // Check if the user has already voted for this movie
   const existingVote = await prisma.vote.findUnique({
     where: {
@@ -45,17 +53,13 @@ export async function POST(
       },
     });
 
-    const movie = await prisma.movie.findUnique({
-      where: { id: movieId },
-    });
-
     await fetch(process.env.SLACK_WEBHOOK!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: `User <@${session.data.user.id}> removed their vote for ${movie!.title}`,
+        text: `User <@${session.data.user.id}> removed their vote for ${movie.title}`,
       }),
     });
 
@@ -69,11 +73,6 @@ export async function POST(
       },
     });
 
-    const movie = await prisma.movie.findUnique({
-      where: { id: movieId },
-      include: { votes: true },
-    });
-
     await fetch(process.env.SLACK_WEBHOOK!,
       {
         method: "POST",
@@ -81,7 +80,7 @@ export async function POST(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text: `User <@${session.data.user.id}> just voted for ${movie!.title}!`,
+          text: `User <@${session.data.user.id}> just voted for ${movie.title}!`,
         }),
       });
     return NextResponse.json(vote);
