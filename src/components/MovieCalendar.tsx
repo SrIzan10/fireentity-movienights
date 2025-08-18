@@ -42,10 +42,20 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
   };
 
   const getScheduleForDate = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
-    return schedules.find(schedule => 
-      schedule.date.split('T')[0] === dateString
-    );
+    // Format date as YYYY-MM-DD in local timezone
+    const dateString = date.getFullYear() + '-' + 
+                      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(date.getDate()).padStart(2, '0');
+    
+    return schedules.find(schedule => {
+      // Format schedule date as YYYY-MM-DD in local timezone
+      const scheduleDate = new Date(schedule.date);
+      const scheduleDateString = scheduleDate.getFullYear() + '-' + 
+                                String(scheduleDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                String(scheduleDate.getDate()).padStart(2, '0');
+      
+      return scheduleDateString === dateString;
+    });
   };
 
   const tileContent = ({ date, view }: { date: Date; view: string }) => {
@@ -140,7 +150,7 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
               value={selectedDate}
               tileContent={tileContent}
               tileClassName={tileClassName}
-              locale="en-US"
+              locale="en-GB"
             />
           </div>
         </CardContent>
