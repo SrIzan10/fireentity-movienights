@@ -41,7 +41,7 @@ export async function validateRequestData(request: Request, schema: z.ZodSchema)
     return { data: schema.parse(data) as any, error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map(err => err.message).join(", ");
+      const errorMessage = error.issues.map(err => err.message).join(", ");
       return { data: null, error: errorMessage };
     }
     return { data: null, error: "Invalid JSON" };
@@ -54,7 +54,7 @@ export function validateParams(params: Record<string, string>, schema: z.ZodSche
     return { data: schema.parse(params) as any, error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map(err => err.message).join(", ");
+      const errorMessage = error.issues.map(err => err.message).join(", ");
       return { data: null, error: errorMessage };
     }
     return { data: null, error: "Invalid parameters" };
@@ -72,7 +72,7 @@ export function validateSearchParams(url: string, schema: z.ZodSchema) {
     return { data: schema.parse(params) as any, error: null };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map(err => err.message).join(", ");
+      const errorMessage = error.issues.map(err => err.message).join(", ");
       return { data: null, error: errorMessage };
     }
     return { data: null, error: "Invalid search parameters" };

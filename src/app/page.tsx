@@ -153,7 +153,7 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <Button 
                         onClick={() => handleVote(movie.id)}
-                        disabled={votingMovieId === movie.id || movie.isOwnSubmission}
+                        disabled={!!votingMovieId || movie.isOwnSubmission}
                         className="transition-colors"
                         variant={movie.userVote ? "secondary" : "default"}
                       >
