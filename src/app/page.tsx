@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth";
 import MovieCalendar from "@/components/MovieCalendar";
 import Link from "next/link";
 import { toast, Toaster } from "sonner";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 interface Movie {
   id: string;
@@ -91,6 +92,7 @@ export default function Home() {
                 Suggest a Movie
               </Button>
             </Link>
+            <ThemeSwitch />
             <Button onClick={() => authClient.signOut()}>Sign out</Button>
           </div>
         </div>
