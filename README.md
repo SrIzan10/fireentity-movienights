@@ -1,5 +1,7 @@
 # FireEntity Movie Nights
 
+(WARNING: VIBECODING EXPERIMENT, MADE WITH GEMINI CLI AND QWEN CLI)
+
 A Next.js application for organizing movie nights with voting and scheduling features.
 
 ## Features
