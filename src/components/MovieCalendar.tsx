@@ -43,13 +43,13 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
     }
   };
 
-  const getScheduleForDate = (date: Date) => {
+  const getSchedulesForDate = (date: Date) => {
     // Format date as YYYY-MM-DD in local timezone
     const dateString = date.getFullYear() + '-' + 
                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                       String(date.getDate()).padStart(2, '0');
     
-    return schedules.find(schedule => {
+    return schedules.filter(schedule => {
       // Format schedule date as YYYY-MM-DD in local timezone
       const scheduleDate = new Date(schedule.date);
       const scheduleDateString = scheduleDate.getFullYear() + '-' + 
@@ -62,15 +62,17 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
 
   const tileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
-      const schedule = getScheduleForDate(date);
-      if (schedule) {
+      const schedulesForDate = getSchedulesForDate(date);
+      if (schedulesForDate.length > 0) {
         return (
-          <div className="flex flex-col items-center mt-1">
-            <Badge variant="secondary" className="text-xs px-1 py-0">
-              {schedule.movie.title.length > 10 
-                ? schedule.movie.title.substring(0, 10) + '...' 
-                : schedule.movie.title}
-            </Badge>
+          <div className="flex flex-col items-center mt-1 space-y-1">
+            {schedulesForDate.map((schedule) => (
+              <Badge key={schedule.id} variant="secondary" className="text-xs px-1 py-0">
+                {schedule.movie.title.length > 10 
+                  ? schedule.movie.title.substring(0, 10) + '...' 
+                  : schedule.movie.title}
+              </Badge>
+            ))}
           </div>
         );
       }
@@ -80,15 +82,15 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
 
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
-      const schedule = getScheduleForDate(date);
-      if (schedule) {
+      const schedulesForDate = getSchedulesForDate(date);
+      if (schedulesForDate.length > 0) {
         return 'movie-scheduled';
       }
     }
     return '';
   };
 
-  const selectedSchedule = selectedDate ? getScheduleForDate(selectedDate) : null;
+  const selectedSchedules = selectedDate ? getSchedulesForDate(selectedDate) : [];
 
   return (
     <div className="flex flex-col lg:flex-row gap-4">
@@ -196,19 +198,23 @@ export default function MovieCalendar({ isAdmin = false }: CalendarProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {selectedSchedule ? (
+            {selectedSchedules.length > 0 ? (
               <div className="space-y-4">
-                <img
-                  src={selectedSchedule.movie.posterUrl}
-                  alt={selectedSchedule.movie.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <div>
-                  <h3 className="font-semibold text-lg">{selectedSchedule.movie.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {selectedSchedule.movie.description}
-                  </p>
-                </div>
+                {selectedSchedules.map((schedule) => (
+                  <div key={schedule.id} className="space-y-4">
+                    <img
+                      src={schedule.movie.posterUrl}
+                      alt={schedule.movie.title}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg">{schedule.movie.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {schedule.movie.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-muted-foreground">No movie scheduled for this date.</p>
