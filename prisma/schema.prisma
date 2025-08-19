@@ -86,10 +86,12 @@ model Movie {
 model MovieSchedule {
   id        String   @id @default(cuid())
   movieId   String
-  date      DateTime @unique
+  date      DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, date])
 }
 
 model Vote {
